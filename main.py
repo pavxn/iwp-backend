@@ -12,6 +12,10 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+@app.get("/")
+async def test():
+    return {'name' : 'pavan'}
+
 @app.get("/blog/")
 async def get_all_blogs():
     response = await get_blogs()
