@@ -1,18 +1,19 @@
 from typing import List
-from fastapi import Form
 from pydantic import BaseModel
 class User(BaseModel):
     fname : str 
     lname : str
-    user_id : int
+    user_id : str
     email_id : str
     passw : str 
-    blogs : List[int] = []
+    blogs : List[str] = []
     
 
 class BlogPost(BaseModel):
-    blog_id : int
-    user_id : int
+    blog_id : str
+    user_id : str
     title : str
     desc : str
     content : str
+
+#class UpdateUser(BaseModel):

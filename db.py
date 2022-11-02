@@ -1,7 +1,9 @@
-from http import client
-from unittest import result
+from multiprocessing.dummy import Array
+from urllib import response
+from hash import blog_hash
 from models import *
 from motor import motor_asyncio
+from pymongo import ReturnDocument
 
 client = motor_asyncio.AsyncIOMotorClient(
     "mongodb+srv://iwp:iwp123@cluster0.u0lqc19.mongodb.net/?retryWrites=true&w=majority"
@@ -23,15 +25,63 @@ async def get_one_blog(blog_id):
     return doc
 
 async def create_blog(blog):
-    result = await blog_collection.insert_one(blog.dict())
+    blog.blog_id = blog_hash(blog.user_id)
+    await blog_collection.insert_one(blog.dict())
+    blog_user = await get_one_user(blog.user_id)
+    blog_user["blogs"].append(blog.blog_id)
+    await update_user(blog.user_id, blog_user)
     return blog
 
+async def remove_blog(blog_id, user_id):
+    result = await blog_collection.delete_one({"blog_id" : blog_id})
+    
+    if result.deleted_count > 0:
+        doc = await get_one_user(user_id)
+        print(doc['blogs'])
+        doc["blogs"] = doc["blogs"].remove(blog_id)
+        if not doc['blogs'] :  doc['blogs'] = []
+        if user := await update_user(user_id, doc):
+            return 200
+
+    return None
 
 async def create_user(user):
-    result = await user_collection.insert_one(user)
-    return user
+    emails = await get_email_ids()
+    if user["email_id"] not in emails:
+        result = await user_collection.insert_one(user)
+        return user
+    
+    return None
 
-async def get_one_user(email_id):
-    doc = await user_collection.find_one({"email_id" : email_id})
+async def get_one_user(user_id):
+    doc = await user_collection.find_one({"user_id" : user_id})
     return doc
+
+async def update_user(user_id, user : User):
+    doc = await user_collection.find_one_and_update(
+        {"user_id" : user_id}, {"$set" : user},
+        return_document = ReturnDocument.AFTER
+    )
+
+    return doc  
+
+async def remove_user(user_id):
+    user = await user_collection.find_one({"user_id" : user_id})
+    blogs = user['blogs']
+    print(blogs)
+    for blog_id in blogs:
+        await blog_collection.delete_one({"blog_id" : blog_id})
+        
+
+    await user_collection.delete_one({"user_id" : user_id})
+
+    return 200
+
+async def get_email_ids():
+    emails = []
+    curs = user_collection.find({})
+    async for doc in curs:
+        emails.append(doc["email_id"])
+
+    return emails
 
