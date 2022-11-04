@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Form, status
 from fastapi.middleware.cors import CORSMiddleware
 from models import *
 from db import *
-from hash import email_hash
+from hash import email_hash, get_date
 
 app = FastAPI()
 app.add_middleware(
@@ -31,6 +31,17 @@ async def post_blog(blog : BlogPost):
     if response:
         return response
 
+@app.put("/blog/")
+async def put_blog(blog: BlogPost):
+    blog.last_edited = get_date()
+    response = await update_blog(blog.blog_id, blog)
+    if response:
+        return response
+
+    raise HTTPException(500,
+    f"Update could not be executed.")
+
+
 @app.delete("/blog/")
 async def delete_blog(blog_id , user_id):
     response = await remove_blog(blog_id, user_id)
@@ -40,20 +51,14 @@ async def delete_blog(blog_id , user_id):
     raise HTTPException(500,
     f"Delete could not be executed.")
 
-@app.post("/user/", response_model=User)
-async def post_user(
-    firstname : str = Form(),
-    lastname : str = Form(),
-    email : str = Form(),
-    password : str = Form()
-    ):
-
+@app.post("/user/")
+async def post_user(usr : NewUser):
     user = {
-        "fname" : firstname,
-        "lname" : lastname,
-        "user_id" : email_hash(email),
-        "email_id" : email,
-        "passw" : password,
+        "fname" : usr.fname,
+        "lname" : usr.lname,
+        "user_id" : email_hash(usr.email_id),
+        "email_id" : usr.email_id,
+        "passw" : usr.passw,
         "blogs" : []
     }
 
@@ -62,11 +67,11 @@ async def post_user(
         return response
 
     raise HTTPException(409,
-    f"Email ID {email} already exists.")
+    f"Email ID {usr.email_id} already exists.")
 
 
 @app.put("/user/")
-async def put_user(user : User):
+async def put_user(user : UpdateUser):
     response = await update_user(user.user_id, user)
     if response:
         return response
@@ -83,11 +88,13 @@ async def delete_user(user_id : str):
     raise HTTPException(500,
     f"Delete could not be executed.")
     
+@app.get("/users/")
+async def get_all_users():
+    response = await get_users()
+    return response
 
 @app.get("/login/", response_model=User)
 async def get_user_by_id(user_id : str):  
     response = await get_one_user(user_id)
     if response:
         return response
-
-

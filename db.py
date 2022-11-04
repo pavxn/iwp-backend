@@ -1,5 +1,3 @@
-from multiprocessing.dummy import Array
-from urllib import response
 from hash import blog_hash
 from models import *
 from motor import motor_asyncio
@@ -32,6 +30,13 @@ async def create_blog(blog):
     await update_user(blog.user_id, blog_user)
     return blog
 
+async def update_blog(blog_id, blog : BlogPost):
+    doc = await blog_collection.find_one_and_update(
+        {"blog_id" : blog_id}, {"$set" : blog},
+        return_document = ReturnDocument.AFTER
+    )
+
+    return doc
 async def remove_blog(blog_id, user_id):
     result = await blog_collection.delete_one({"blog_id" : blog_id})
     
@@ -48,11 +53,19 @@ async def remove_blog(blog_id, user_id):
 async def create_user(user):
     emails = await get_email_ids()
     if user["email_id"] not in emails:
+        print(user)
         result = await user_collection.insert_one(user)
-        return user
+        return user["user_id"]
     
     return None
 
+async def get_users():
+    blogs = []
+    curs = user_collection.find({})
+    async for doc in curs:
+        blogs.append(User(**doc))
+
+    return blogs
 async def get_one_user(user_id):
     doc = await user_collection.find_one({"user_id" : user_id})
     return doc
