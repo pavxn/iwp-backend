@@ -95,6 +95,6 @@ async def get_all_users():
 
 @app.get("/login/", response_model=User)
 async def get_user_by_id(user_id : str):  
-    response = await get_one_user(user_id)
+    response = await get_one_user_by_email(user_id)
     if response:
         return response
