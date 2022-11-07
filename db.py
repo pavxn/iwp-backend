@@ -1,4 +1,4 @@
-from hash import blog_hash
+from hash import blog_hash, get_date
 from models import *
 from motor import motor_asyncio
 from pymongo import ReturnDocument
@@ -24,6 +24,7 @@ async def get_one_blog(blog_id):
 
 async def create_blog(blog):
     blog.blog_id = blog_hash(blog.user_id)
+    blog.last_edited = get_date()
     await blog_collection.insert_one(blog.dict())
     blog_user = await get_one_user(blog.user_id)
     blog_user["blogs"].append(blog.blog_id)
