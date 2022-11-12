@@ -71,6 +71,10 @@ async def get_one_user(user_id):
     doc = await user_collection.find_one({"user_id" : user_id})
     return doc
 
+async def get_one_user_by_email(user_id):
+    doc = await user_collection.find_one({"email_id" : user_id})
+    return 
+
 async def update_user(user_id, user : User):
     doc = await user_collection.find_one_and_update(
         {"user_id" : user_id}, {"$set" : user},
