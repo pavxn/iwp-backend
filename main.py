@@ -101,6 +101,6 @@ async def get_user_by_id(user_id : str):
     
 @app.get("/allblogs")
 async def get_user_blogs(user_id : str):
-    response = await get_blogs_by_user
+    response = await get_blogs_by_user(user_id)
     if response:
         return response
