@@ -98,3 +98,9 @@ async def get_user_by_id(user_id : str):
     response = await get_one_user_by_email(user_id)
     if response:
         return response
+    
+@app.get("/allblogs")
+async def get_user_blogs(user_id : str):
+    response = await get_blogs_by_user
+    if response:
+        return response
