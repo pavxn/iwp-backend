@@ -102,3 +102,11 @@ async def get_email_ids():
 
     return emails
 
+async def get_blogs_by_user(user_id):
+    user = User(**get_one_user(user_id))
+    blog_list = user.blogs
+    blogs = []
+    for blog in blog_list:
+        blogs.append(BlogPost(**get_one_blog(blog)))
+
+    return blogs
