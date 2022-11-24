@@ -103,10 +103,14 @@ async def get_email_ids():
     return emails
 
 async def get_blogs_by_user(user_id):
-    user = User(**get_one_user(user_id))
-    blog_list = user.blogs
+    user = await get_one_user(user_id)
+    print(user)
+    
+    blog_list = user['blogs']
     blogs = []
     for blog in blog_list:
-        blogs.append(BlogPost(**get_one_blog(blog)))
+        print(blog)
+        doc = await blog_collection.find_one({"blog_id" : blog})
+        blogs.append(BlogPost(**doc))
 
     return blogs
